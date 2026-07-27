@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torrent to Magnet</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/parse-torrent@11.0.19/dist/parse-torrent.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>Torrent → Magnet</h1>
+
+    <label class="upload">
+        <input type="file" id="torrentFile" accept=".torrent">
+        Select Torrent File
+    </label>
+
+    <textarea id="result" placeholder="Magnet link will appear here..." readonly></textarea>
+
+    <div class="buttons">
+        <button id="copyBtn">Copy</button>
+        <button id="clearBtn">Clear</button>
+    </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
