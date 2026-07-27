@@ -24,7 +24,7 @@ Installation
 
 Clone the repository:
 
-git clone https://github.com/YOUR_USERNAME/magnetify.git
+git clone https://github.com/i6p6t/magnetify.git
 cd magnetify
 
 Open index.html in your browser, or serve the project with any static web server.
