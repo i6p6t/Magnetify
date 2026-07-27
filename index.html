@@ -1,33 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torrent to Magnet</title>
-
-    <link rel="stylesheet" href="style.css">
-
-    <script src="https://cdn.jsdelivr.net/npm/parse-torrent@11.0.19/dist/parse-torrent.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torrent to Magnet Converter</title>
+<style>
+body{font-family:sans-serif;background:#0f1115;color:#eee;display:flex;flex-direction:column;align-items:center;padding:60px 20px;min-height:100vh;box-sizing:border-box}
+.card{background:#1a1d24;border:1px solid #2a2e38;border-radius:12px;padding:32px;max-width:600px;width:100%}
+h1{font-size:22px;margin:0 0 20px}
+#drop{border:2px dashed #3a3f4b;border-radius:10px;padding:40px;text-align:center;cursor:pointer;transition:border-color .2s}
+#drop.drag{border-color:#4f8cff}
+#drop p{margin:0;color:#9aa0ab}
+input[type=file]{display:none}
+#result{margin-top:24px;display:none}
+textarea{width:100%;box-sizing:border-box;background:#0f1115;color:#4f8cff;border:1px solid #2a2e38;border-radius:8px;padding:12px;font-size:13px;resize:vertical;min-height:80px}
+button{margin-top:12px;background:#4f8cff;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-size:14px}
+button:hover{background:#3d78e6}
+#name{margin-top:16px;font-size:14px;color:#9aa0ab}
+#err{color:#ff6767;margin-top:16px;display:none}
+</style>
 </head>
 <body>
-
-<div class="container">
-    <h1>Torrent → Magnet</h1>
-
-    <label class="upload">
-        <input type="file" id="torrentFile" accept=".torrent">
-        Select Torrent File
-    </label>
-
-    <textarea id="result" placeholder="Magnet link will appear here..." readonly></textarea>
-
-    <div class="buttons">
-        <button id="copyBtn">Copy</button>
-        <button id="clearBtn">Clear</button>
-    </div>
+<div class="card">
+<h1>Torrent to Magnet Converter</h1>
+<div id="drop">
+<p>Click or drop a .torrent file here</p>
 </div>
+<input type="file" id="file" accept=".torrent">
+<div id="name"></div>
+<div id="result">
+<textarea id="magnet" readonly rows="4"></textarea>
+<button id="copy">Copy Magnet Link</button>
+</div>
+<div id="err"></div>
+</div>
+<script>
+const dropEl=document.getElementById('drop');
+const fileEl=document.getElementById('file');
+const resultEl=document.getElementById('result');
+const magnetEl=document.getElementById('magnet');
+const nameEl=document.getElementById('name');
+const errEl=document.getElementById('err');
+const copyBtn=document.getElementById('copy');
 
-<script src="script.js"></script>
+dropEl.addEventListener('click',()=>fileEl.click());
+dropEl.addEventListener('dragover',e=>{e.preventDefault();dropEl.classList.add('drag');});
+dropEl.addEventListener('dragleave',()=>dropEl.classList.remove('drag'));
+dropEl.addEventListener('drop',e=>{
+e.preventDefault();
+dropEl.classList.remove('drag');
+if(e.dataTransfer.files.length)handleFile(e.dataTransfer.files[0]);
+});
+fileEl.addEventListener('change',()=>{
+if(fileEl.files.length)handleFile(fileEl.files[0]);
+});
+copyBtn.addEventListener('click',()=>{
+magnetEl.select();
+navigator.clipboard.writeText(magnetEl.value);
+copyBtn.textContent='Copied!';
+setTimeout(()=>copyBtn.textContent='Copy Magnet Link',1200);
+});
 
+function handleFile(file){
+errEl.style.display='none';
+resultEl.style.display='none';
+nameEl.textContent=file.name;
+const reader=new FileReader();
+reader.onload=async()=>{
+try{
+const buf=new Uint8Array(reader.result);
+const parsed=bdecode(buf,0);
+const info=parsed.value.info;
+if(!info)throw new Error('No info dictionary found');
+const infoBytes=buf.slice(parsed.infoStart,parsed.infoEnd);
+const hashBuf=await crypto.subtle.digest('SHA-1',infoBytes);
+const hashHex=[...new Uint8Array(hashBuf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+const dn=info.name?bytesToUtf8(info.name):file.name.replace(/\.torrent$/,'');
+let trackers=[];
+if(parsed.value['announce-list']){
+for(const tier of parsed.value['announce-list']){
+for(const t of tier)trackers.push(bytesToUtf8(t));
+}
+}else if(parsed.value.announce){
+trackers.push(bytesToUtf8(parsed.value.announce));
+}
+trackers=[...new Set(trackers)];
+let magnet='magnet:?xt=urn:btih:'+hashHex+'&dn='+encodeURIComponent(dn);
+for(const tr of trackers)magnet+='&tr='+encodeURIComponent(tr);
+magnetEl.value=magnet;
+resultEl.style.display='block';
+}catch(e){
+errEl.textContent='Error: '+e.message;
+errEl.style.display='block';
+}
+};
+reader.readAsArrayBuffer(file);
+}
+
+function bytesToUtf8(bytes){
+return new TextDecoder('utf-8',{fatal:false}).decode(bytes);
+}
+
+function bdecode(buf,pos){
+const c=buf[pos];
+if(c===0x64){
+const dict={};
+pos++;
+let infoStart=-1,infoEnd=-1;
+while(buf[pos]!==0x65){
+const keyRes=bdecodeStr(buf,pos);
+pos=keyRes.pos;
+const key=bytesToUtf8(keyRes.value);
+const valRes=bdecode(buf,pos);
+if(key==='info'){
+infoStart=pos;
+infoEnd=valRes.pos;
+}
+dict[key]=valRes.value;
+pos=valRes.pos;
+}
+pos++;
+return {value:dict,pos:pos,infoStart:infoStart,infoEnd:infoEnd};
+}
+if(c===0x6c){
+const list=[];
+pos++;
+while(buf[pos]!==0x65){
+const r=bdecode(buf,pos);
+list.push(r.value);
+pos=r.pos;
+}
+pos++;
+return {value:list,pos:pos};
+}
+if(c===0x69){
+pos++;
+let start=pos;
+while(buf[pos]!==0x65)pos++;
+const num=parseInt(new TextDecoder().decode(buf.slice(start,pos)),10);
+pos++;
+return {value:num,pos:pos};
+}
+return bdecodeStr(buf,pos);
+}
+
+function bdecodeStr(buf,pos){
+let start=pos;
+while(buf[pos]!==0x3a)pos++;
+const len=parseInt(new TextDecoder().decode(buf.slice(start,pos)),10);
+pos++;
+const value=buf.slice(pos,pos+len);
+pos+=len;
+return {value:value,pos:pos};
+}
+</script>
 </body>
 </html>
