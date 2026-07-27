@@ -1,56 +1,46 @@
 Magnetify
 
-A fast, lightweight, and privacy-focused web application that converts .torrent files into magnet links entirely within your browser. No servers, uploads, or account registration required.
+A fast, lightweight, and privacy-focused web application that converts .torrent files into magnet links directly in your browser.
 
-⸻
-
-Overview
-
-Magnetify is a static web application designed to provide a simple way to generate magnet links from .torrent files. All processing is performed locally in the browser, ensuring that your files never leave your device.
-
-Because the project consists entirely of static assets, it can be hosted on any static hosting platform, including GitHub Pages.
+Magnetify performs all processing locally. Your torrent files are never uploaded, stored, or transmitted to any server.
 
 Features
 
 * Client-side processing
 * Instant magnet link generation
-* No backend or database
+* No backend required
 * No file uploads
+* One-click copy to clipboard
 * Responsive interface
-* One-click clipboard copy
 * Lightweight and fast
-* Compatible with all modern browsers
-* Deployable on any static hosting provider
+* Compatible with modern browsers
+* Ready for GitHub Pages and other static hosting providers
 
 Live Demo
 
-Host the project with GitHub Pages or any static hosting provider.
+Deploy the project to GitHub Pages or any static hosting provider to create your own live demo.
 
-Getting Started
+Installation
 
-Clone the repository
+Clone the repository:
 
 git clone https://github.com/YOUR_USERNAME/magnetify.git
 cd magnetify
 
-Run locally
-
-Simply open index.html in your preferred web browser.
-
-Alternatively, serve the project using any static web server.
+Open index.html in your browser, or serve the project with any static web server.
 
 Deployment
 
-Magnetify can be deployed to any static hosting platform, including:
+Magnetify is a fully static application and can be hosted on:
 
 * GitHub Pages
 * Cloudflare Pages
 * Netlify
 * Vercel
 * Firebase Hosting
-* Any standard web server
+* Any static web server
 
-No build process or server-side configuration is required.
+No build tools or backend services are required.
 
 Project Structure
 
@@ -58,42 +48,38 @@ magnetify/
 ├── index.html
 ├── style.css
 ├── script.js
+├── LICENSE
 └── README.md
 
 Privacy
 
-Magnetify never uploads, stores, or transmits your torrent files.
+All processing is performed locally within your browser. Magnetify does not collect, upload, or store any user data or torrent files.
 
-Every operation is performed locally within your browser.
-
-Browser Support
-
-The application supports all modern browsers that implement:
-
-* File API
-* Clipboard API
-* ES6 JavaScript
-
-Built With
+Technologies
 
 * HTML5
 * CSS3
 * JavaScript
 * parse-torrent
 
+Browser Support
+
+Magnetify supports all modern browsers with support for:
+
+* File API
+* Clipboard API
+* ES6 JavaScript
+
 Contributing
 
 Contributions are welcome.
 
-If you would like to improve the project, please:
-
 1. Fork the repository.
-2. Create a feature branch.
+2. Create a new branch.
 3. Commit your changes.
-4. Open a Pull Request.
-
-Please ensure your code follows the existing style and includes a clear description of the changes.
+4. Push your branch.
+5. Open a Pull Request.
 
 License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the LICENSE file for more information.
